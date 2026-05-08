@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chris\\\\Desktop\\\\My Projects Vue\\\\my-project-vue\\\\src\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(gh api *)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl -s \"https://api.github.com/repos/rromanv/my-projects-vue/contents/src/views/ProjectDetailPage.vue\")",
+      "Bash(python3 -c \"import sys,json,base64; d=json.load\\(sys.stdin\\); print\\(base64.b64decode\\(d['content']\\).decode\\(\\)\\)\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/rromanv/my-projects-vue/main/src/views/ProjectDetailPage.vue\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\chris\\\\Desktop\\\\My Projects Vue\\\\my-project-vue\\\\src\\\\assets\\\\composables\\\\useAsync.js\" -Force)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(netstat -ano)",
+      "Bash(ls \"c:\\\\Users\\\\chris\\\\Desktop\\\\My Projects Vue\\\\\")",
+      "Read(//c/Users/chris/Desktop/**)",
+      "PowerShell(Stop-Process -Id 70624 -Force)"
     ]
   }
 }
