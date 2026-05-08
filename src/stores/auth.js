@@ -1,52 +1,30 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { apiFetch, rawFetch } from '@/lib/api'
+import { computed, ref } from 'vue'
+import { useStorage } from '@vueuse/core'
+import { rawFetch, ApiError } from '@/lib/api'
+
+function decodeJwtEmail(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.email ?? null
+  } catch {
+    return null
+  }
+}
 
 export const useAuthStore = defineStore('auth', () => {
-  const accessToken = ref(localStorage.getItem('accessToken') ?? null)
-  const refreshToken = ref(localStorage.getItem('refreshToken') ?? null)
-  const email = ref(localStorage.getItem('userEmail') ?? null)
+  const accessToken = ref(null)
+  const refreshToken = useStorage('auth:refreshToken', null)
+  const email = useStorage('auth:email', null)
 
-  const isAuthenticated = computed(() => !!accessToken.value)
+  const isAuthenticated = computed(() => Boolean(refreshToken.value))
 
-  function _persist(data) {
-    accessToken.value = data.accessToken
-    refreshToken.value = data.refreshToken ?? null
-    email.value = data.email ?? null
-    localStorage.setItem('accessToken', data.accessToken)
-    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken)
-    if (data.email) localStorage.setItem('userEmail', data.email)
-  }
-
-  async function login(form) {
-    const data = await rawFetch('/auth/login', { method: 'POST', body: form })
-    _persist(data)
-  }
-
-  async function register(form) {
-    const data = await rawFetch('/auth/register', { method: 'POST', body: form })
-    _persist(data)
-  }
-
-  async function logout() {
-    try {
-      await apiFetch('/auth/logout', { method: 'POST', auth: true })
-    } finally {
-      clear()
-    }
-  }
-
-  async function refresh() {
-    try {
-      const data = await rawFetch('/auth/refresh', {
-        method: 'POST',
-        body: { refreshToken: refreshToken.value },
-      })
-      accessToken.value = data.accessToken
-      localStorage.setItem('accessToken', data.accessToken)
-      return true
-    } catch {
-      return false
+  function setTokens({ accessToken: at, refreshToken: rt }) {
+    if (at !== undefined) accessToken.value = at
+    if (rt !== undefined) refreshToken.value = rt
+    if (at) {
+      const emailFromToken = decodeJwtEmail(at)
+      if (emailFromToken) email.value = emailFromToken
     }
   }
 
@@ -54,10 +32,68 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = null
     refreshToken.value = null
     email.value = null
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('userEmail')
   }
 
-  return { accessToken, refreshToken, email, isAuthenticated, login, register, logout, refresh, clear }
+  async function register({ email: userEmail, password }) {
+    await rawFetch('/auth/register', {
+      method: 'POST',
+      body: { email: userEmail, password },
+    })
+    await login({ email: userEmail, password })
+  }
+
+  async function login({ email: userEmail, password }) {
+    const data = await rawFetch('/auth/login', {
+      method: 'POST',
+      body: { email: userEmail, password },
+    })
+    setTokens({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+    })
+    email.value = userEmail
+  }
+
+  async function refresh() {
+    if (!refreshToken.value) return false
+    try {
+      const data = await rawFetch('/auth/refresh', {
+        method: 'POST',
+        body: { refresh_token: refreshToken.value },
+      })
+      accessToken.value = data.access_token
+      return true
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) clear()
+      return false
+    }
+  }
+
+  async function logout() {
+    const token = refreshToken.value
+    clear()
+    if (token) {
+      try {
+        await rawFetch('/auth/logout', {
+          method: 'POST',
+          body: { refresh_token: token },
+        })
+      } catch {
+        // Ignore — local state already cleared.
+      }
+    }
+  }
+
+  return {
+    accessToken,
+    refreshToken,
+    email,
+    isAuthenticated,
+    setTokens,
+    clear,
+    register,
+    login,
+    refresh,
+    logout,
+  }
 })
