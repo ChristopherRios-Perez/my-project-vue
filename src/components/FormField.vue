@@ -1,6 +1,8 @@
 <script setup>
 import { useId } from 'vue'
 
+defineOptions({ inheritAttrs: false })
+
 defineProps({
   label: { type: String, required: true },
   modelValue: { type: [String, Number], default: '' },
@@ -47,6 +49,7 @@ const fieldId = useId()
       :autocomplete="autocomplete"
       :aria-invalid="error ? 'true' : 'false'"
       :aria-describedby="error ? `${fieldId}-err` : undefined"
+      v-bind="$attrs"
       class="border-border bg-surface text-text placeholder:text-text-3 hover:border-border-strong focus:border-accent focus:ring-accent/30 h-10 w-full rounded-md border px-3 text-sm transition-colors focus:ring-2 focus:outline-none"
       :class="error ? 'border-danger focus:border-danger focus:ring-danger/30' : ''"
       @input="$emit('update:modelValue', $event.target.value)"

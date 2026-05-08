@@ -55,6 +55,7 @@ async function onSubmit() {
           placeholder="At least 8 characters…"
           hint="Min 8"
           required
+          minlength="8"
           :error="fieldErrors.password"
         />
 

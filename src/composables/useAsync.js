@@ -1,23 +1,22 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { ApiError } from '@/lib/api'
 
 export function useAsync() {
   const loading = ref(false)
   const error = ref(null)
-
-  const fieldErrors = computed(() => {
-    if (error.value instanceof ApiError) return error.value.fieldErrors()
-    return {}
-  })
+  const fieldErrors = ref({})
 
   async function run(fn) {
     loading.value = true
     error.value = null
+    fieldErrors.value = {}
+
     try {
       return await fn()
-    } catch (e) {
-      error.value = e
-      throw e
+    } catch (err) {
+      error.value = err
+      if (err instanceof ApiError) fieldErrors.value = err.fieldErrors()
+      throw err
     } finally {
       loading.value = false
     }
