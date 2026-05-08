@@ -26,7 +26,7 @@ const classes = computed(() => {
   }
   const byVariant = {
     primary:
-      'border-transparent bg-accent text-[color:var(--color-accent-ink)] hover:brightness-110 shadow-[0_0_0_1px_rgba(94,234,212,0.3),0_8px_24px_-12px_rgba(94,234,212,0.4)]',
+      'border-transparent bg-accent text-[color:var(--color-accent-ink)] hover:brightness-110 shadow-[0_0_0_1px_rgba(24,168,216,0.3),0_8px_24px_-12px_rgba(24,168,216,0.4)]',
     ghost: 'border-border bg-surface text-text hover:border-border-strong hover:bg-surface-2',
     danger:
       'border-transparent bg-[color:var(--color-danger-soft)] text-danger hover:bg-danger hover:text-bg',
